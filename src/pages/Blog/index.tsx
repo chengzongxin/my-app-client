@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Card, Space, Input, Tag, Button, Row, Col, Typography, 
-  Skeleton, Empty, message 
+  Skeleton, Empty, message, Pagination 
 } from 'antd';
 import { 
   EyeOutlined, LikeOutlined, MessageOutlined, 
@@ -16,6 +16,12 @@ import TagCloud from '../../components/TagCloud';
 const { Search } = Input;
 const { Title, Paragraph } = Typography;
 
+interface TagData {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
 interface TagWithCount {
   name: string;
   count: number;
@@ -27,18 +33,28 @@ const BlogList: React.FC = () => {
   const [tags, setTags] = useState<TagWithCount[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>();
   const [searchText, setSearchText] = useState('');
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
   const navigate = useNavigate();
 
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await blogApi.getPosts({
-        page: 1,
-        size: 10,
+        page: pagination.current,
+        size: pagination.pageSize,
         tag: selectedTag,
         search: searchText,
       });
-      setPosts(response?.data || []);
+      
+      setPosts(response.data || []);
+      setPagination(prev => ({
+        ...prev,
+        total: response.total || 0,
+      }));
     } catch (error) {
       console.error('获取博客列表失败:', error);
       message.error('获取博客列表失败');
@@ -46,15 +62,16 @@ const BlogList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedTag, searchText]);
+  }, [pagination.current, pagination.pageSize, selectedTag, searchText]);
 
   const fetchTags = async () => {
     try {
       const response = await blogApi.getTags();
-      const tagStrings = Array.isArray(response) ? response : [];
-      const tagsWithCount = tagStrings.map((tag: string) => ({
-        name: tag,
-        count: posts.filter(post => post.tags.includes(tag)).length
+      // 处理标签数据
+      const tagData = response as TagData[];
+      const tagsWithCount = tagData.map(tag => ({
+        name: tag.name,
+        count: posts.filter(post => post.tags.includes(tag.name)).length
       }));
       setTags(tagsWithCount);
     } catch (error) {
@@ -73,10 +90,20 @@ const BlogList: React.FC = () => {
 
   const handleSearch = (value: string) => {
     setSearchText(value);
+    setPagination(prev => ({ ...prev, current: 1 }));
   };
 
   const handleTagClick = (tagName: string) => {
     setSelectedTag(tagName === selectedTag ? undefined : tagName);
+    setPagination(prev => ({ ...prev, current: 1 }));
+  };
+
+  const handlePageChange = (page: number, pageSize?: number) => {
+    setPagination(prev => ({
+      ...prev,
+      current: page,
+      pageSize: pageSize || prev.pageSize,
+    }));
   };
 
   return (
@@ -108,7 +135,7 @@ const BlogList: React.FC = () => {
             />
 
             <Space wrap>
-              {Array.isArray(tags) && tags.map(tag => (
+              {tags.map(tag => (
                 <Tag
                   key={`tag-${tag.name}`}
                   color={tag.name === selectedTag ? 'blue' : undefined}
@@ -130,66 +157,68 @@ const BlogList: React.FC = () => {
               ))}
             </Space>
           ) : posts.length > 0 ? (
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              {posts.map(post => (
-                <Card
-                  key={post.id}
-                  hoverable
-                  onClick={() => navigate(`/blog/${post.id}`)}
-                  cover={
-                    post.coverImage && (
-                      <img
-                        alt={post.title}
-                        src={post.coverImage}
-                        style={{ height: 200, objectFit: 'cover' }}
-                      />
-                    )
-                  }
-                >
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <Title level={4}>{post.title}</Title>
-                    <Paragraph ellipsis={{ rows: 2 }}>{post.summary}</Paragraph>
-                    
-                    <Space wrap>
-                      {post.tags.map(tag => (
-                        <Tag key={tag}>{tag}</Tag>
-                      ))}
-                    </Space>
+            <>
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                {posts.map(post => (
+                  <Card
+                    key={post.id}
+                    hoverable
+                    onClick={() => navigate(`/blog/${post.id}`)}
+                  >
+                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                      <Title level={4}>{post.title}</Title>
+                      <Paragraph ellipsis={{ rows: 2 }}>{post.summary}</Paragraph>
+                      
+                      <Space wrap>
+                        {post.tags.map(tag => (
+                          <Tag key={tag}>{tag}</Tag>
+                        ))}
+                      </Space>
 
-                    <Row justify="space-between" align="middle">
-                      <Col>
-                        <Space>
-                          <span>
-                            <EyeOutlined /> {post.views}
-                          </span>
-                          <span>
-                            <LikeOutlined /> {post.likes}
-                          </span>
-                          <span>
-                            <MessageOutlined /> {post.comments}
-                          </span>
-                        </Space>
-                      </Col>
-                      <Col>
-                        <Space align="center">
-                          <img
-                            src={post.author.avatarUrl}
-                            alt={post.author.name}
-                            style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: '50%',
-                            }}
-                          />
-                          <span>{post.author.name}</span>
-                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                        </Space>
-                      </Col>
-                    </Row>
-                  </Space>
-                </Card>
-              ))}
-            </Space>
+                      <Row justify="space-between" align="middle">
+                        <Col>
+                          <Space>
+                            <span>
+                              <EyeOutlined /> {post.views}
+                            </span>
+                            <span>
+                              <LikeOutlined /> {post.likes}
+                            </span>
+                            <span>
+                              <MessageOutlined /> {post.comments}
+                            </span>
+                          </Space>
+                        </Col>
+                        <Col>
+                          <Space align="center">
+                            <img
+                              src={post.author.avatarUrl}
+                              alt={post.author.name}
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                              }}
+                            />
+                            <span>{post.author.name}</span>
+                            <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                          </Space>
+                        </Col>
+                      </Row>
+                    </Space>
+                  </Card>
+                ))}
+              </Space>
+              <Pagination
+                current={pagination.current}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                onChange={handlePageChange}
+                showSizeChanger
+                showQuickJumper
+                showTotal={total => `共 ${total} 条记录`}
+              />
+            </>
           ) : (
             <Empty description="暂无文章" />
           )}
@@ -197,14 +226,12 @@ const BlogList: React.FC = () => {
       </Col>
       <Col xs={24} md={8}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          {Array.isArray(tags) && (
-            <TagCloud 
-              tags={tags}
-              selectedTag={selectedTag}
-              onTagClick={handleTagClick}
-            />
-          )}
-          {Array.isArray(posts) && posts.length > 0 && (
+          <TagCloud 
+            tags={tags}
+            selectedTag={selectedTag}
+            onTagClick={handleTagClick}
+          />
+          {posts.length > 0 && (
             <BlogArchive posts={posts} />
           )}
         </Space>
@@ -213,4 +240,4 @@ const BlogList: React.FC = () => {
   );
 };
 
-export default BlogList; 
+export default BlogList;
