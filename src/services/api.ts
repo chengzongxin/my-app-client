@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
-import { LoginRequest, LoginResponse, User } from '../types/user';
+import { LoginRequest, LoginResponse, User, RegisterRequest } from '../types/user';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -60,6 +60,16 @@ export const userApi = {
 
   updateUser: async (userId: number, data: Partial<User>) => {
     const response = await api.put(`/users/${userId}`, data);
+    return response.data;
+  },
+
+  register: async (data: RegisterRequest) => {
+    const response = await api.post('/users', data);
+    return response.data;
+  },
+
+  getAllUsers: async () => {
+    const response = await api.get('/users/all');
     return response.data;
   },
 };

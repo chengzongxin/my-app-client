@@ -45,6 +45,7 @@ const Layout: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: '20px' }}>
           <Link to="/" style={{ color: 'white' }}>首页</Link>
+          <Link to="/users" style={{ color: 'white' }}>用户管理</Link>
           <Link to="/about" style={{ color: 'white' }}>关于</Link>
           <Dropdown menu={{ items }} placement="bottomRight">
             <Button type="text" icon={<UserOutlined />} style={{ color: 'white' }}>

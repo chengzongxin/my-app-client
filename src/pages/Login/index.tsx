@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { userApi } from '../../services/api';
 import { LoginRequest } from '../../types/user';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,10 @@ const Login: React.FC = () => {
               登录
             </Button>
           </Form.Item>
+          <div style={{ textAlign: 'center' }}>
+            <Text>还没有账号？</Text>
+            <Link to="/register"> 立即注册</Link>
+          </div>
         </Form>
       </Card>
     </div>
