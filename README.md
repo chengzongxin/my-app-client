@@ -170,6 +170,206 @@ chore: 其他修改
 4. [ ] 优化首屏加载速度
 5. [ ] 添加数据可视化功能
 
+## Windows 环境下的部署指南
+
+### 1. 安装 Nginx
+
+1. 下载 Nginx Windows 版本
+   - 访问 [Nginx 官网](http://nginx.org/en/download.html)
+   - 下载稳定版本（如 nginx/Windows-1.24.0）
+   - 解压到指定目录（如 `C:\nginx`）
+
+2. 启动 Nginx
+   ```bash
+   # 进入 Nginx 目录
+   cd C:\nginx
+
+   # 启动 Nginx
+   start nginx
+
+   # 停止 Nginx
+   nginx -s stop
+
+   # 重新加载配置
+   nginx -s reload
+   ```
+
+### 2. 配置 Nginx
+
+1. 编辑配置文件 `C:\nginx\conf\nginx.conf`：
+
+```nginx
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       80;
+        server_name  localhost;  # 或者你的域名
+
+        # 前端项目目录
+        root   C:/path/to/your/build;
+        index  index.html;
+
+        # 路由重写，支持前端路由
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        # API 代理
+        location /api {
+            proxy_pass http://localhost:8080;  # 后端 API 地址
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # 静态资源缓存设置
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+            expires 7d;
+            add_header Cache-Control "public, no-transform";
+        }
+
+        # 错误页面配置
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+```
+
+### 3. 部署步骤
+
+1. 构建项目
+```bash
+npm run build
+```
+
+2. 复制构建文件
+   - 将 `build` 目录下的所有文件复制到 Nginx 的网站目录（如 `C:\nginx\html`）
+   - 或者在 nginx.conf 中指定你的构建目录路径
+
+3. 启动或重启 Nginx
+```bash
+# 如果 Nginx 未启动，启动它
+start nginx
+
+# 如果 Nginx 已启动，重新加载配置
+nginx -s reload
+```
+
+### 4. 常见问题处理
+
+1. 端口占用问题
+```bash
+# 查看占用 80 端口的进程
+netstat -ano | findstr :80
+
+# 关闭占用端口的进程（PID 为上面命令查到的进程 ID）
+taskkill /F /PID <PID>
+```
+
+2. 权限问题
+   - 以管理员身份运行命令提示符
+   - 确保 Nginx 进程有足够的文件访问权限
+
+3. 路径问题
+   - Windows 下路径使用正斜杠 `/` 或双反斜杠 `\\`
+   - 确保路径不含中文字符
+
+4. 日志查看
+   - 错误日志：`C:\nginx\logs\error.log`
+   - 访问日志：`C:\nginx\logs\access.log`
+
+### 5. Nginx 常用命令
+
+```bash
+# 启动 Nginx
+start nginx
+
+# 停止 Nginx
+nginx -s stop
+
+# 重新加载配置
+nginx -s reload
+
+# 检查配置文件语法
+nginx -t
+
+# 查看 Nginx 版本
+nginx -v
+```
+
+### 6. 性能优化建议
+
+1. 启用 Gzip 压缩
+```nginx
+# 在 http 块中添加
+gzip on;
+gzip_min_length 1k;
+gzip_comp_level 6;
+gzip_types text/plain text/css text/javascript application/json application/javascript application/x-javascript application/xml;
+gzip_vary on;
+gzip_proxied any;
+```
+
+2. 配置缓存
+```nginx
+# 在 server 块中添加
+location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+    expires 7d;
+    add_header Cache-Control "public, no-transform";
+}
+```
+
+3. 配置日志格式
+```nginx
+# 在 http 块中添加
+log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                '$status $body_bytes_sent "$http_referer" '
+                '"$http_user_agent" "$http_x_forwarded_for"';
+access_log logs/access.log main;
+```
+
+### 7. 安全配置建议
+
+1. 隐藏 Nginx 版本信息
+```nginx
+# 在 http 块中添加
+server_tokens off;
+```
+
+2. 配置 SSL（如果需要 HTTPS）
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+    
+    ssl_certificate     /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    # ... 其他配置
+}
+```
+
+3. 添加安全头
+```nginx
+add_header X-Frame-Options "SAMEORIGIN";
+add_header X-XSS-Protection "1; mode=block";
+add_header X-Content-Type-Options "nosniff";
+```
+
 ## 许可证
 
 MIT License
