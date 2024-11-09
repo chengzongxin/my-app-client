@@ -39,12 +39,15 @@ export interface BlogComment {
   content: string;
   parentId?: number;
   authorId: number;
-  author: {
+  user: {
+    id: number;
+    username: string;
     name: string;
     avatarUrl?: string;
   };
   createdAt: string;
   replies?: BlogComment[];
+  replyCount?: number;
 }
 
 export interface CreateBlogRequest {
@@ -67,4 +70,10 @@ export interface Category {
   createdAt: string;
   updatedAt: string;
   postCount?: number;
+}
+
+export interface CreateCommentRequest {
+  postId: number;
+  content: string;
+  parentId?: number;
 } 

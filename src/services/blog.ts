@@ -1,5 +1,5 @@
 import api from './api';
-import type { BlogPost, BlogComment, CreateBlogRequest, Category } from '../types/blog';
+import type { BlogPost, BlogComment, CreateBlogRequest, Category, CreateCommentRequest } from '../types/blog';
 
 export const blogApi = {
   // 获取博客列表
@@ -37,15 +37,32 @@ export const blogApi = {
     await api.delete(`/posts/${id}`);
   },
 
-  // 获取评论列表
+  // 获取文章评论列表
   getComments: async (postId: number) => {
-    const response = await api.get(`/comments?postId=${postId}`);
+    const response = await api.get(`/comments/post/${postId}`);
     return response.data;
   },
 
-  // 添加评论
-  addComment: async (data: { postId: number; content: string; parentId?: number }) => {
+  // 创建评论
+  addComment: async (data: CreateCommentRequest) => {
     const response = await api.post('/comments', data);
+    return response.data;
+  },
+
+  // 删除评论
+  deleteComment: async (commentId: number) => {
+    await api.delete(`/comments/${commentId}`);
+  },
+
+  // 获取评论回复
+  getCommentReplies: async (commentId: number) => {
+    const response = await api.get(`/comments/${commentId}/replies`);
+    return response.data;
+  },
+
+  // 获取评论数量
+  getCommentCount: async (postId: number) => {
+    const response = await api.get(`/comments/post/${postId}/count`);
     return response.data;
   },
 

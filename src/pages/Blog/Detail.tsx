@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Space, Typography, Button, Divider, Avatar, 
-  Form, Input, message, Tag, Row, Col, Modal 
+  Form, Input, message, Tag, Row, Col, Modal, Empty 
 } from 'antd';
 import { 
   LikeOutlined, LikeFilled, EyeOutlined, 
@@ -271,9 +271,47 @@ const BlogDetail: React.FC = () => {
 
           <Divider />
 
-          {comments.map(comment => (
-            <Comment key={comment.id} comment={comment} />
-          ))}
+          {comments.length > 0 ? (
+            comments.map(comment => comment && (
+                <>
+              <Comment 
+                key={comment.id} 
+                comment={{
+                  id: comment.id,
+                  postId: comment.postId,
+                  content: comment.content,
+                  parentId: comment.parentId || null,
+                  user: {
+                    id: comment.user?.id || 0,
+                    username: comment.user?.username || '',
+                    name: comment.user?.name || '匿名用户',
+                    avatarUrl: comment.user?.avatarUrl
+                  },
+                  createdAt: comment.createdAt,
+                  replyCount: comment.replies?.length || 0,
+                  replies: comment.replies?.map(reply => reply && ({
+                    id: reply.id,
+                    postId: reply.postId,
+                    content: reply.content,
+                    parentId: reply.parentId || null,
+                    user: {
+                      id: reply.user?.id || 0,
+                      username: reply.user?.username || '',
+                      name: reply.user?.name || '匿名用户',
+                      avatarUrl: reply.user?.avatarUrl
+                    },
+                    createdAt: reply.createdAt,
+                    replyCount: 0,
+                    replies: []
+                  })).filter(Boolean)
+                }}
+                currentUserId={currentUser?.userId}
+              />
+              </>
+            ))
+          ) : (
+            <Empty description="暂无评论" />
+          )}
         </Space>
       </Card>
     </Space>
