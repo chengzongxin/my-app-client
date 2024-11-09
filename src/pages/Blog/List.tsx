@@ -22,16 +22,9 @@ interface TagData {
   createdAt: string;
 }
 
-interface TagWithCount {
-  name: string;
-  count: number;
-}
-
 const BlogList: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tags, setTags] = useState<TagWithCount[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string>();
   const [searchText, setSearchText] = useState('');
   const [pagination, setPagination] = useState({
     current: 1,
@@ -48,7 +41,7 @@ const BlogList: React.FC = () => {
       const response = await blogApi.getPosts({
         page: pagination.current,
         size: pagination.pageSize,
-        tag: selectedTag,
+        categoryId: selectedCategory,
         search: searchText,
       });
       
@@ -57,8 +50,6 @@ const BlogList: React.FC = () => {
         ...prev,
         total: response?.length || 0,
       }));
-
-      console.log('获取到的博客列表:', response);
     } catch (error) {
       console.error('获取博客列表失败:', error);
       message.error('获取博客列表失败');
@@ -66,24 +57,7 @@ const BlogList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, selectedTag, searchText]);
-
-  const fetchTags = async () => {
-    try {
-      const response = await blogApi.getTags();
-      const tagData = response as TagData[];
-      const tagsWithCount = tagData.map(tag => ({
-        name: tag.name,
-        count: posts.filter(post => 
-          post.tags.some(postTag => postTag.name === tag.name)
-        ).length
-      }));
-      setTags(tagsWithCount);
-    } catch (error) {
-      console.error('获取标签失败:', error);
-      setTags([]);
-    }
-  };
+  }, [pagination.current, pagination.pageSize, selectedCategory, searchText]);
 
   const fetchCategories = async () => {
     try {
@@ -96,10 +70,6 @@ const BlogList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTags();
-  }, [posts]);
-
-  useEffect(() => {
     fetchCategories();
   }, []);
 
@@ -109,11 +79,6 @@ const BlogList: React.FC = () => {
 
   const handleSearch = (value: string) => {
     setSearchText(value);
-    setPagination(prev => ({ ...prev, current: 1 }));
-  };
-
-  const handleTagClick = (tagName: string) => {
-    setSelectedTag(tagName === selectedTag ? undefined : tagName);
     setPagination(prev => ({ ...prev, current: 1 }));
   };
 
@@ -157,19 +122,6 @@ const BlogList: React.FC = () => {
               onSearch={handleSearch}
               style={{ maxWidth: 400 }}
             />
-
-            <Space wrap>
-              {tags.map(tag => (
-                <Tag
-                  key={`tag-${tag.name}`}
-                  color={tag.name === selectedTag ? 'blue' : undefined}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleTagClick(tag.name)}
-                >
-                  {tag.name}
-                </Tag>
-              ))}
-            </Space>
           </Space>
 
           {loading ? (
@@ -266,4 +218,4 @@ const BlogList: React.FC = () => {
   );
 };
 
-export default BlogList;
+export default BlogList; 

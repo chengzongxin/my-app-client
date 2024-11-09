@@ -136,7 +136,7 @@ const BlogDetail: React.FC = () => {
 
           <Space wrap>
             {post.tags.map(tag => (
-              <Tag key={tag}>{tag}</Tag>
+              <Tag key={tag.id}>{tag.name}</Tag>
             ))}
           </Space>
 
@@ -147,13 +147,13 @@ const BlogDetail: React.FC = () => {
             </Space>
             <Text>{new Date(post.createdAt).toLocaleDateString()}</Text>
             <Space>
-              <EyeOutlined /> {post.views}
+              <EyeOutlined /> {post.viewCount}
               <Button 
                 type="text" 
                 icon={liked ? <LikeFilled /> : <LikeOutlined />}
                 onClick={handleLike}
               >
-                {post.likes}
+                {post.likeCount}
               </Button>
               <MessageOutlined /> {comments.length}
             </Space>

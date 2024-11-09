@@ -5,10 +5,10 @@ import About from '../pages/About';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Users from '../pages/Users';
-import BlogList from '../pages/Blog';
+import Categories from '../pages/Categories';
+import BlogList from '../pages/Blog/List';
 import BlogDetail from '../pages/Blog/Detail';
 import BlogEdit from '../pages/Blog/Edit';
-import Categories from '../pages/Categories';
 
 // 简单的路由守卫组件
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {

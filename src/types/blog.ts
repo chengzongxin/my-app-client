@@ -4,19 +4,33 @@ export interface BlogPost {
   content: string;
   summary: string;
   coverImage?: string;
-  categoryIds: number[];
-  tags: string[];
-  authorId: number;
+  authorId: number | null;
   author: {
+    id: number;
+    username: string;
     name: string;
+    email: string;
     avatarUrl?: string;
+    // ... 其他作者字段
   };
+  status: number;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  categories: Array<{
+    id: number;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  tags: Array<{
+    id: number;
+    name: string;
+    createdAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
-  likes: number;
-  views: number;
-  comments: number;
-  status: 'draft' | 'published';
 }
 
 export interface BlogComment {
