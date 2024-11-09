@@ -5,6 +5,10 @@ import About from '../pages/About';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Users from '../pages/Users';
+import BlogList from '../pages/Blog';
+import BlogDetail from '../pages/Blog/Detail';
+import BlogEdit from '../pages/Blog/Edit';
+import Categories from '../pages/Categories';
 
 // 简单的路由守卫组件
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -21,6 +25,11 @@ const AppRoutes = () => {
         <Route path="/" element={<PrivateRoute element={<Layout />} />}>
           <Route index element={<Home />} />
           <Route path="users" element={<Users />} />
+          <Route path="blog" element={<BlogList />} />
+          <Route path="blog/:id" element={<BlogDetail />} />
+          <Route path="blog/new" element={<BlogEdit />} />
+          <Route path="blog/edit/:id" element={<BlogEdit />} />
+          <Route path="categories" element={<Categories />} />
           <Route path="about" element={<About />} />
         </Route>
       </Routes>

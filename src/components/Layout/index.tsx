@@ -63,6 +63,8 @@ const Layout: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <Link to="/" style={{ color: 'white' }}>首页</Link>
+          <Link to="/blog" style={{ color: 'white' }}>博客</Link>
+          <Link to="/categories" style={{ color: 'white' }}>分类管理</Link>
           <Link to="/users" style={{ color: 'white' }}>用户管理</Link>
           <Link to="/about" style={{ color: 'white' }}>关于</Link>
           <Dropdown menu={{ items }} placement="bottomRight">
