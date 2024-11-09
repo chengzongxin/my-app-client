@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Space, Typography, Button, Divider, Avatar, 
-  Form, Input, message, Tag, Row, Col 
+  Form, Input, message, Tag, Row, Col, Modal 
 } from 'antd';
 import { 
   LikeOutlined, LikeFilled, EyeOutlined, 
-  MessageOutlined, EditOutlined, DeleteOutlined 
+  MessageOutlined, EditOutlined, DeleteOutlined,
+  SaveOutlined, CloseOutlined
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { blogApi } from '../../services/blog';
 import type { BlogPost, BlogComment } from '../../types/blog';
 import ReactMarkdown from 'react-markdown';
 import Comment from '../../components/Comment';
+import MDEditor from '@uiw/react-md-editor';
 
-const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
+const { Title, Text } = Typography;
 
 const BlogDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,9 @@ const BlogDetail: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [commentContent, setCommentContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [editTitle, setEditTitle] = useState('');
   const userString = localStorage.getItem('user');
   const currentUser = userString ? JSON.parse(userString) : null;
 
@@ -34,6 +38,8 @@ const BlogDetail: React.FC = () => {
       setLoading(true);
       const data = await blogApi.getPost(parseInt(id));
       setPost(data);
+      setEditContent(data.content);
+      setEditTitle(data.title);
     } catch (error) {
       message.error('获取文章失败');
     } finally {
@@ -78,11 +84,6 @@ const BlogDetail: React.FC = () => {
     }
   };
 
-  const handleEdit = () => {
-    if (!id) return;
-    navigate(`/blog/edit/${id}`);
-  };
-
   const handleDelete = async () => {
     if (!id || !post) return;
     try {
@@ -94,6 +95,39 @@ const BlogDetail: React.FC = () => {
     }
   };
 
+  const handleSaveEdit = async () => {
+    if (!id || !post) return;
+    try {
+      setLoading(true);
+      await blogApi.updatePost(parseInt(id), {
+        title: editTitle,
+        content: editContent,
+        categoryIds: post.categories.map(cat => cat.id),
+        tags: post.tags.map(tag => tag.name),
+        summary: editContent.slice(0, 200),
+      });
+      message.success('更新成功');
+      setIsEditing(false);
+      fetchPost();
+    } catch (error) {
+      message.error('更新失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    Modal.confirm({
+      title: '确定要取消编辑吗？',
+      content: '取消编辑后，所有修改都将丢失。',
+      onOk: () => {
+        setIsEditing(false);
+        setEditContent(post?.content || '');
+        setEditTitle(post?.title || '');
+      },
+    });
+  };
+
   if (loading) {
     return <Card loading />;
   }
@@ -102,7 +136,7 @@ const BlogDetail: React.FC = () => {
     return null;
   }
 
-  const isAuthor = currentUser?.userId === post.authorId;
+  const isAuthor = currentUser?.userId === post.author.id;
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -110,25 +144,61 @@ const BlogDetail: React.FC = () => {
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <Row justify="space-between" align="middle">
             <Col>
-              <Title level={2}>{post.title}</Title>
+              {isEditing ? (
+                <Input
+                  size="large"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  style={{ 
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    padding: '0',
+                    marginBottom: '16px'
+                  }}
+                />
+              ) : (
+                <Title level={2}>{post.title}</Title>
+              )}
             </Col>
             {isAuthor && (
               <Col>
                 <Space>
-                  <Button 
-                    type="primary" 
-                    icon={<EditOutlined />}
-                    onClick={handleEdit}
-                  >
-                    编辑
-                  </Button>
-                  <Button 
-                    danger 
-                    icon={<DeleteOutlined />}
-                    onClick={handleDelete}
-                  >
-                    删除
-                  </Button>
+                  {isEditing ? (
+                    <>
+                      <Button 
+                        type="primary"
+                        icon={<SaveOutlined />}
+                        onClick={handleSaveEdit}
+                        loading={loading}
+                      >
+                        保存
+                      </Button>
+                      <Button 
+                        icon={<CloseOutlined />}
+                        onClick={handleCancelEdit}
+                      >
+                        取消
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        type="primary" 
+                        icon={<EditOutlined />}
+                        onClick={() => setIsEditing(true)}
+                      >
+                        编辑
+                      </Button>
+                      <Button 
+                        danger 
+                        icon={<DeleteOutlined />}
+                        onClick={handleDelete}
+                      >
+                        删除
+                      </Button>
+                    </>
+                  )}
                 </Space>
               </Col>
             )}
@@ -161,9 +231,18 @@ const BlogDetail: React.FC = () => {
 
           <Divider />
 
-          <div className="markdown-content">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
-          </div>
+          {isEditing ? (
+            <MDEditor
+              value={editContent}
+              onChange={value => setEditContent(value || '')}
+              height={500}
+              preview="edit"
+            />
+          ) : (
+            <div className="markdown-content">
+              <ReactMarkdown>{post.content}</ReactMarkdown>
+            </div>
+          )}
         </Space>
       </Card>
 
@@ -171,7 +250,7 @@ const BlogDetail: React.FC = () => {
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Form>
             <Form.Item>
-              <TextArea 
+              <Input.TextArea 
                 rows={4} 
                 value={commentContent}
                 onChange={e => setCommentContent(e.target.value)}
@@ -201,4 +280,4 @@ const BlogDetail: React.FC = () => {
   );
 };
 
-export default BlogDetail; 
+export default BlogDetail;
