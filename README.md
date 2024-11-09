@@ -1,306 +1,175 @@
-# React + TypeScript 项目开发指南
+# React + TypeScript 博客系统
 
-本项目使用 Create React App 作为脚手架工具，React 作为前端框架，TypeScript 作为开发语言，展示了一个现代化前端项目的完整开发流程。
+## 项目开发日志
 
-## 技术栈
-
-- React 18
-- TypeScript 5
-- Create React App
-- ESLint
-- Prettier
-- React Router
-- Ant Design
-
-## 项目创建步骤
-
-### 1. 初始化项目
-
-首先需要确保当前目录为空目录，如果目录不为空，需要先清空目录。然后执行以下命令：
-
+### 1. 项目初始化
+1. 使用 Create React App 创建项目
 ```bash
-npx create-react-app . --template typescript
+npx create-react-app my-app --template typescript
 ```
 
-注意：如果当前目录不为空，需要先删除所有文件（包括隐藏文件），可以使用以下命令：
+2. 安装必要依赖
 ```bash
-rm -rf .* *
+npm install antd @ant-design/icons axios react-router-dom @uiw/react-md-editor react-markdown
 ```
 
-### 2. 安装项目依赖
-
-项目创建完成后，需要安装必要的依赖包：
-
-```bash
-npm install antd @ant-design/icons react-router-dom @types/react-router-dom axios @types/axios
-```
-
-这些依赖包的作用：
-- antd: UI 组件库
-- @ant-design/icons: Ant Design 图标库
-- react-router-dom: 路由管理
-- axios: HTTP 请求库
-
-### 3. 项目结构设置
-
-创建以下目录结构：
-
+### 2. 项目结构设计
 ```
 src/
   ├── components/     # 可复用组件
+  │   ├── Layout/    # 布局组件
+  │   ├── Comment/   # 评论组件
+  │   └── TagCloud/  # 标签云组件
   ├── pages/         # 页面组件
-  ├── routes/        # 路由配置
+  │   ├── Blog/      # 博客相关页面
+  │   ├── Login/     # 登录页面
+  │   └── Register/  # 注册页面
   ├── services/      # API 服务
-  ├── utils/         # 工具函数
-  ├── hooks/         # 自定义 hooks
   ├── types/         # TypeScript 类型定义
-  └── assets/        # 静态资源
+  └── utils/         # 工具函数
 ```
 
-在 Windows 系统中，执行以下命令创建目录：
+### 3. 功能模块开发
 
+#### 3.1 用户认证模块
+- [x] 登录功能
+- [x] 注册功能
+- [x] Token 管理
+- [x] 路由守卫
+
+#### 3.2 博客管理模块
+- [x] 文章列表
+- [x] 文章创建
+- [x] 文章编辑
+- [x] 文章删除
+- [x] Markdown 编辑器
+- [x] 图片上传
+- [x] 草稿保存
+
+#### 3.3 评论系统
+- [x] 评论列表
+- [x] 发表评论
+- [x] 回复评论
+- [x] 删除评论
+
+#### 3.4 分类管理
+- [x] 分类列表
+- [x] 创建分类
+- [x] 编辑分类
+- [x] 删除分类
+
+#### 3.5 标签管理
+- [x] 标签列表
+- [x] 标签筛选
+- [x] 标签统计
+
+### 4. 项目亮点
+
+1. 完整的类型定义
+   - 使用 TypeScript 定义所有接口和类型
+   - 严格的类型检查
+
+2. 组件化开发
+   - 可复用的组件设计
+   - 组件间通信规范
+
+3. 用户体验优化
+   - 自动保存草稿
+   - 图片粘贴上传
+   - 响应式布局
+
+4. 性能优化
+   - 按需加载
+   - 缓存处理
+   - 防抖节流
+
+### 5. 部署指南
+
+#### 5.1 环境配置
+创建生产环境配置文件 `.env.production`：
 ```bash
-mkdir src\components
-mkdir src\pages
-mkdir src\routes
-mkdir src\services
-mkdir src\utils
-mkdir src\hooks
-mkdir src\types
-mkdir src\assets
+REACT_APP_API_BASE_URL=http://your-production-api-domain/api
 ```
 
-### 4. 配置文件设置
-
-创建 .prettierrc 文件，用于代码格式化配置：
-
-```json
-{
-  "semi": true,
-  "tabWidth": 2,
-  "printWidth": 100,
-  "singleQuote": true,
-  "trailingComma": "es5",
-  "bracketSpacing": true,
-  "arrowParens": "avoid"
-}
-```
-
-### 5. 路由配置
-
-在 src/routes 目录下创建 index.tsx 文件，配置路由：
-
-```tsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from '../components/Layout';
-import Home from '../pages/Home';
-import About from '../pages/About';
-
-const AppRoutes = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="about" element={<About />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
-};
-
-export default AppRoutes;
-```
-
-### 6. 基础组件创建
-
-创建以下基础组件：
-
-1. Layout 组件 (src/components/Layout/index.tsx)
-2. Home 页面 (src/pages/Home/index.tsx)
-3. About 页面 (src/pages/About/index.tsx)
-
-这些组件将构成我们应用的基本框架。
-
-### 7. 修改入口文件
-
-更新 App.tsx 文件，使用路由配置：
-
-```tsx
-import React from 'react';
-import AppRoutes from './routes';
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/locale/zh_CN';
-
-const App: React.FC = () => {
-  return (
-    <ConfigProvider locale={zhCN}>
-      <AppRoutes />
-    </ConfigProvider>
-  );
-};
-
-export default App;
-```
-
-这里我们：
-1. 引入了路由配置
-2. 使用 Ant Design 的 ConfigProvider 配置中文语言
-3. 将路由配置作为根组件渲染
-
-### 8. 配置全局样式
-
-更新 src/index.css 文件，添加全局样式：
-
-1. 引入 Ant Design 的样式重置
-2. 设置基础字体和平滑渲染
-3. 配置布局相关的样式
-4. 确保页面占满全屏高度
-
-### 9. 运行项目
-
-在完成以上所有配置后，我们可以启动项目：
-
+#### 5.2 构建
 ```bash
-npm start
+npm run build
 ```
 
-启动后，浏览器会自动打开 http://localhost:3000，你将看到项目的首页。
+#### 5.3 Docker 部署
+1. 创建 Dockerfile：
+```dockerfile
+# 构建阶段
+FROM node:16 as build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-### 10. 项目功能说明
-
-本项目实现了以下功能：
-
-1. 基础路由系统
-   - 首页 (/)
-   - 关于页面 (/about)
-
-2. 统一的布局组件
-   - 顶部导航栏
-   - 内容区域
-   - 页脚
-
-3. Ant Design 组件使用示例
-   - Layout 布局
-   - Typography 排版
-   - Card 卡片
-   - Space 间距
-
-4. TypeScript 类型支持
-   - 组件类型声明
-   - 路由配置类型
-
-### 11. 用户登录功能开发
-
-#### 11.1 添加登录相关类型定义
-
-在 src/types 目录下创建 user.ts：
-
-```typescript
-export interface LoginRequest {
-  username?: string;
-  email?: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  userId: number;
-  username: string;
-  name: string;
-  email: string;
-  token: string;
-  lastLoginTime: string;
-}
-
-export interface User {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  status: number;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginTime: string;
-}
+# 生产阶段
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
-#### 11.2 添加 API 服务
+2. 创建 docker-compose.yml：
+```yaml
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_BASE_URL=http://your-api-domain/api
+```
 
-在 src/services 目录下创建 api.ts，用于处理 HTTP 请求。
+3. 部署命令：
+```bash
+# 使用 Docker 构建和运行
+docker build -t my-react-app .
+docker run -d -p 80:80 my-react-app
 
-#### 11.3 创建登录页面
+# 或使用 docker-compose
+docker-compose up -d
+```
 
-在 src/pages/Login 目录下创建 index.tsx，实现登录表单：
-- 支持用户名/邮箱登录
-- 密码输入框（带密码明文切换）
-- 登录按钮（带加载状态）
-- 表单验证
-- 登录成功后重定向到首页
+### 6. 开发规范
 
-#### 11.4 更新布组件
+#### 6.1 代码规范
+- ESLint 配置
+- Prettier 格式化
+- TypeScript 规范
 
-更新 Layout 组件，添加以下功能：
-- 顶部导航栏添加用户信息显示
-- 添加用户下拉菜单
-- 实现退出登录功能
-- 导航菜单高亮当前页面
+#### 6.2 提交规范
+```bash
+feat: 新功能
+fix: 修复问题
+docs: 文档修改
+style: 代码格式修改
+refactor: 代码重构
+test: 测试用例修改
+chore: 其他修改
+```
 
-主要更新包括：
-1. 使用 Dropdown 组件显示用户菜单
-2. 添加退出登录功能
-3. 使用 Link 组件优化导航
-4. 响应式布局优化
+### 7. 常见问题
 
-### 12. 安全性和优化
+1. 跨域问题处理
+2. 图片上传配置
+3. 路由配置说明
+4. 权限控制说明
 
-#### 12.1 API 请求优化
+### 8. 后续优化计划
 
-更新 API 服务，添加以下功能：
-1. 请求拦截器
-   - 自动添加 token 到请求头
-   - 统一处理请求配置
+1. [ ] 添加单元测试
+2. [ ] 优化打包体积
+3. [ ] 添加 CI/CD 配置
+4. [ ] 优化首屏加载速度
+5. [ ] 添加数据可视化功能
 
-2. 响应拦截器
-   - 处理 token 过期情况
-   - 统一处理错误信息
-   - 自动跳转到登录页
+## 许可证
 
-主要优化包括：
-- 统一的错误处理
-- 自动的 token 管理
-- 登录状态维护
-- 全局消息提示
-
-#### 12.2 安全性考虑
-
-1. Token 管理
-   - 使用 localStorage 存储 token
-   - token 过期自动处理
-   - 退出时清除 token
-
-2. 路由保护
-   - 私有路由守卫
-   - 未登录自动跳转
-   - 登录状态维护
-
-3. 用户会话
-   - 用户信息本地存储
-   - 会话状态管理
-   - 自动登出机制
-
-### 13. 用户管理功能
-
-#### 13.1 用户列表页面
-
-在 src/pages/Users 目录下创建用户管理页面，实现以下功能：
-- 用户列表展示
-- 分页功能
-- 搜索功能
-- 用户状态管理
-- 用户信息编辑
-
-主要功能包括：
-1. 表格展示用户信息
-2. 分页和搜索
-3. 状态切换
-4. 编辑用户信息
+MIT License
