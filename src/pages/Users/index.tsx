@@ -28,13 +28,15 @@ const Users: React.FC = () => {
         size: pagination.pageSize,
         search: searchText,
       });
-      setUsers(response.data);
+      
+      setUsers(response);
       setPagination(prev => ({
         ...prev,
-        total: response.total,
+        total: response.length,
       }));
     } catch (error) {
       console.error('获取用户列表失败:', error);
+      message.error('获取用户列表失败');
     } finally {
       setLoading(false);
     }
@@ -117,6 +119,8 @@ const Users: React.FC = () => {
       title: '最后登录时间',
       dataIndex: 'lastLoginTime',
       key: 'lastLoginTime',
+      render: (lastLoginTime: string) => 
+        lastLoginTime ? new Date(lastLoginTime).toLocaleString() : '-'
     },
     {
       title: '操作',
@@ -135,7 +139,7 @@ const Users: React.FC = () => {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Card>
+      <Card title="用户管理">
         <Space style={{ marginBottom: 16 }}>
           <Search
             placeholder="搜索用户"
@@ -148,7 +152,12 @@ const Users: React.FC = () => {
           dataSource={users}
           rowKey="id"
           loading={loading}
-          pagination={pagination}
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `共 ${total} 条记录`,
+          }}
           onChange={(newPagination) => handleTableChange(newPagination)}
         />
       </Card>
