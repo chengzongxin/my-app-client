@@ -189,3 +189,118 @@ npm start
 4. TypeScript 类型支持
    - 组件类型声明
    - 路由配置类型
+
+### 11. 用户登录功能开发
+
+#### 11.1 添加登录相关类型定义
+
+在 src/types 目录下创建 user.ts：
+
+```typescript
+export interface LoginRequest {
+  username?: string;
+  email?: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  userId: number;
+  username: string;
+  name: string;
+  email: string;
+  token: string;
+  lastLoginTime: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  status: number;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginTime: string;
+}
+```
+
+#### 11.2 添加 API 服务
+
+在 src/services 目录下创建 api.ts，用于处理 HTTP 请求。
+
+#### 11.3 创建登录页面
+
+在 src/pages/Login 目录下创建 index.tsx，实现登录表单：
+- 支持用户名/邮箱登录
+- 密码输入框（带密码明文切换）
+- 登录按钮（带加载状态）
+- 表单验证
+- 登录成功后重定向到首页
+
+#### 11.4 更新布组件
+
+更新 Layout 组件，添加以下功能：
+- 顶部导航栏添加用户信息显示
+- 添加用户下拉菜单
+- 实现退出登录功能
+- 导航菜单高亮当前页面
+
+主要更新包括：
+1. 使用 Dropdown 组件显示用户菜单
+2. 添加退出登录功能
+3. 使用 Link 组件优化导航
+4. 响应式布局优化
+
+### 12. 安全性和优化
+
+#### 12.1 API 请求优化
+
+更新 API 服务，添加以下功能：
+1. 请求拦截器
+   - 自动添加 token 到请求头
+   - 统一处理请求配置
+
+2. 响应拦截器
+   - 处理 token 过期情况
+   - 统一处理错误信息
+   - 自动跳转到登录页
+
+主要优化包括：
+- 统一的错误处理
+- 自动的 token 管理
+- 登录状态维护
+- 全局消息提示
+
+#### 12.2 安全性考虑
+
+1. Token 管理
+   - 使用 localStorage 存储 token
+   - token 过期自动处理
+   - 退出时清除 token
+
+2. 路由保护
+   - 私有路由守卫
+   - 未登录自动跳转
+   - 登录状态维护
+
+3. 用户会话
+   - 用户信息本地存储
+   - 会话状态管理
+   - 自动登出机制
+
+### 13. 用户管理功能
+
+#### 13.1 用户列表页面
+
+在 src/pages/Users 目录下创建用户管理页面，实现以下功能：
+- 用户列表展示
+- 分页功能
+- 搜索功能
+- 用户状态管理
+- 用户信息编辑
+
+主要功能包括：
+1. 表格展示用户信息
+2. 分页和搜索
+3. 状态切换
+4. 编辑用户信息
