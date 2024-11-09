@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Form, Input, Button, Typography, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Input, Button, Typography, message, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { userApi } from '../../services/api';
@@ -10,17 +10,34 @@ const { Title, Text } = Typography;
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [form] = Form.useForm();
 
-  const onFinish = async (values: LoginRequest) => {
+  // 组件加载时从 localStorage 获取保存的用户名
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('savedUsername');
+    if (savedUsername) {
+      form.setFieldsValue({ username: savedUsername });
+    }
+  }, [form]);
+
+  const onFinish = async (values: LoginRequest & { remember?: boolean }) => {
+    const { remember, ...loginData } = values;
     try {
       setLoading(true);
-      const response = await userApi.login(values);
-      // 保存 token 到 localStorage
+      const response = await userApi.login(loginData);
+      
+      // 如果选择了记住账号，保存用户名
+      if (remember) {
+        localStorage.setItem('savedUsername', loginData.username || '');
+      } else {
+        localStorage.removeItem('savedUsername');
+      }
+
+      // 保存 token 和用户信息
       localStorage.setItem('token', response.token);
-      // 保存用户信息
       localStorage.setItem('user', JSON.stringify(response));
       message.success('登录成功！');
-      navigate('/'); // 登录成功后跳转到首页
+      navigate('/');
     } catch (error: any) {
       message.error(error.response?.data?.message || '登录失败，请重试');
     } finally {
@@ -41,10 +58,12 @@ const Login: React.FC = () => {
           用户登录
         </Title>
         <Form
+          form={form}
           name="login"
           onFinish={onFinish}
           autoComplete="off"
           size="large"
+          initialValues={{ remember: true }}
         >
           <Form.Item
             name="username"
@@ -66,6 +85,10 @@ const Login: React.FC = () => {
             />
           </Form.Item>
 
+          <Form.Item name="remember" valuePropName="checked">
+            <Checkbox>记住账号</Checkbox>
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
               登录
@@ -81,4 +104,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default Login;

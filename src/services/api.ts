@@ -72,6 +72,24 @@ export const userApi = {
     const response = await api.get('/users/all');
     return response.data;
   },
+
+  // 更新用户头像
+  updateAvatar: async (userId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/users/${userId}/avatar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // 获取用户信息
+  getUserInfo: async (userId: number) => {
+    const response = await api.get(`/users/${userId}`);
+    return response.data;
+  },
 };
 
 export default api; 

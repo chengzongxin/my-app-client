@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Space, Button, Input, message, Switch, Modal, Form } from 'antd';
-import { SearchOutlined, EditOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Table, Card, Space, Button, Input, message, Switch, Modal, Form, Upload } from 'antd';
+import { EditOutlined, PlusOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons';
 import type { User } from '../../types/user';
 import { userApi } from '../../services/api';
 import type { TablePaginationConfig } from 'antd/es/table';
+import type { UploadChangeParam } from 'antd/es/upload';
+import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 
 const { Search } = Input;
 
@@ -18,9 +20,11 @@ const Users: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>();
 
   // 获取用户列表
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userApi.getUsers({
@@ -40,11 +44,11 @@ const Users: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.current, pagination.pageSize, searchText]);
 
   useEffect(() => {
     fetchUsers();
-  }, [pagination.current, pagination.pageSize, searchText]);
+  }, [fetchUsers]);
 
   const handleStatusChange = async (userId: number, checked: boolean) => {
     try {
@@ -59,6 +63,7 @@ const Users: React.FC = () => {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     form.setFieldsValue(user);
+    setImageUrl(user.avatarUrl);
   };
 
   const handleEditSubmit = async () => {
@@ -88,7 +93,66 @@ const Users: React.FC = () => {
     });
   };
 
+  const handleUploadChange = async (info: UploadChangeParam<UploadFile>) => {
+    if (info.file.status === 'uploading') {
+      setUploadLoading(true);
+      return;
+    }
+    
+    if (info.file.status === 'done') {
+      try {
+        if (!editingUser) {
+          message.error('请先选择要编辑的用户');
+          return;
+        }
+
+        const file = info.file.originFileObj;
+        if (!file) {
+          message.error('文件上传失败');
+          return;
+        }
+
+        const response = await userApi.updateAvatar(editingUser.id, file);
+        setImageUrl(response.avatarUrl);
+        message.success('头像更新成功');
+        fetchUsers();
+      } catch (error) {
+        message.error('头像上传失败');
+      } finally {
+        setUploadLoading(false);
+      }
+    }
+  };
+
+  const uploadButton = (
+    <div>
+      {uploadLoading ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>上传头像</div>
+    </div>
+  );
+
   const columns = [
+    {
+      title: '头像',
+      dataIndex: 'avatarUrl',
+      key: 'avatarUrl',
+      render: (avatarUrl: string) => (
+        avatarUrl ? (
+          <img 
+            src={avatarUrl} 
+            alt="avatar" 
+            style={{ 
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              objectFit: 'cover'
+            }} 
+          />
+        ) : (
+          <UserOutlined style={{ fontSize: '32px' }} />
+        )
+      ),
+    },
     {
       title: '用户名',
       dataIndex: 'username',
@@ -137,6 +201,21 @@ const Users: React.FC = () => {
     },
   ];
 
+  // 处理头像上传前的验证
+  const beforeUpload = (file: RcFile) => {
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('只能上传 JPG/PNG 格式的图片！');
+      return false;
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('图片必须小于 2MB！');
+      return false;
+    }
+    return true;
+  };
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <Card title="用户管理">
@@ -166,9 +245,43 @@ const Users: React.FC = () => {
         title="编辑用户"
         open={!!editingUser}
         onOk={handleEditSubmit}
-        onCancel={() => setEditingUser(null)}
+        onCancel={() => {
+          setEditingUser(null);
+          setImageUrl(undefined);
+          form.resetFields();
+        }}
       >
         <Form form={form} layout="vertical">
+          <Form.Item label="头像">
+            <Upload
+              name="file"
+              listType="picture-card"
+              showUploadList={false}
+              beforeUpload={beforeUpload}
+              onChange={handleUploadChange}
+              customRequest={({ file, onSuccess }) => {
+                setTimeout(() => {
+                  onSuccess?.('ok');
+                }, 0);
+              }}
+            >
+              {imageUrl ? (
+                <img 
+                  src={imageUrl} 
+                  alt="avatar" 
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    borderRadius: '8px'
+                  }} 
+                />
+              ) : (
+                uploadButton
+              )}
+            </Upload>
+          </Form.Item>
+
           <Form.Item
             name="name"
             label="姓名"

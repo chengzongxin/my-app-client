@@ -30,4 +30,5 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   lastLoginTime: string;
+  avatarUrl?: string;
 } 
