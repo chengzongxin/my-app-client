@@ -190,7 +190,7 @@ chore: 其他修改
    # 停止 Nginx
    nginx -s stop
 
-   # 重新��载配置
+   # 重新加载配置
    nginx -s reload
    ```
 
@@ -378,7 +378,7 @@ add_header X-Content-Type-Options "nosniff";
 netstat -ano | findstr :80
 ```
 
-2. 停止 Nginx 的方法
+2. 停止 Nginx 的��法
 
 方法一：使用 Nginx 命令（推荐）
 ```bash
@@ -420,6 +420,52 @@ taskkill /F /IM nginx.exe
   1. 检查配置文件语法：`nginx -t`
   2. 查看错误日志：`C:\nginx\logs\error.log`
   3. 确保以管理员权限运行命令提示符
+
+### Windows 下的 Nginx 常见问题
+
+#### 1. 端口权限问题
+如果遇到错误：
+```
+nginx: [emerg] bind() to 0.0.0.0:80 failed (10013: An attempt was made to access a socket in a way forbidden by its access permissions)
+```
+
+解决方法：
+
+1. 检查端口占用
+```bash
+netstat -ano | findstr :80
+```
+
+2. 选择以下方案之一：
+
+方案一：关闭占用端口的进程
+```bash
+# 使用管理员权限运行 CMD，然后执行：
+taskkill /F /PID <进程ID>
+```
+
+方案二：修改 Nginx 配置使用其他端口
+1. 编辑 `C:\nginx\conf\nginx.conf`：
+```nginx
+server {
+    listen       8080;  # 改为其他端口，如 8080
+    # ... 其他配置保持不变
+}
+```
+
+方案三：以管理员身份运行 Nginx
+1. 右键点击命令提示符
+2. 选择"以管理员身份运行"
+3. 进入 Nginx 目录并启动
+```bash
+cd C:\nginx
+nginx.exe
+```
+
+注意事项：
+1. Windows 下 80 端口通常需要管理员权限
+2. 如果使用其他端口，记得同时修改项目配置
+3. 确保防火墙没有阻止 Nginx
 
 ## 环境变量配置
 
@@ -485,3 +531,132 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:808
 ## 许可证
 
 MIT License
+
+### Windows 下的 Nginx 部署步骤
+
+1. 启动 Nginx 的正确方法：
+
+```bash
+# 进入 Nginx 安装目录（假设安装在 E:\myapp\nginx）
+cd E:\myapp\nginx
+
+# 启动 Nginx（必须在 Nginx 目录下运行）
+nginx.exe
+# 或者使用完整路径
+E:\myapp\nginx\nginx.exe
+```
+
+2. 如果遇到错误：
+```
+nginx: [alert] could not open error log file: CreateFile() "logs/error.log" failed
+```
+
+解决方法：
+1. 确保在 Nginx 安装目录下运行命令
+2. 创建必要的目录：
+```bash
+# 在 Nginx 目录下创建 logs 目录
+mkdir logs
+```
+
+3. 检查配置文件：
+```bash
+# 检查配置文件语法
+nginx -t
+
+# 如果配置文件正确，会显示：
+# nginx: the configuration file /path/to/nginx.conf syntax is ok
+# nginx: configuration file /path/to/nginx.conf test is successful
+```
+
+4. 常见问题处理：
+   - 确保以管理员身份运行命令提示符
+   - 确保在正确的目录下运行命令
+   - 确保所有必要的目录都存在
+   - 检查配置文件路径是否正确
+
+5. 目录结构确认：
+```
+E:\myapp\nginx\
+  ├── conf\              # 配置文件目录
+  │   └── nginx.conf    # 主配置文件
+  ├── logs\              # 日志目录
+  │   ├── access.log
+  │   └── error.log
+  ├── html\              # 网站文件目录
+  └── nginx.exe          # 主程序
+```
+
+6. 启动后验证：
+   - 访问 http://localhost 确认服务是否正常运行
+   - 检查 logs/error.log 是否有错误信息
+   - 使用 `tasklist | findstr nginx.exe` 确认进程是否运行
+```
+
+### Windows 下的命令行操作
+
+1. 打开命令提示符：
+   - 按 `Win + R`
+   - 输入 `cmd`
+   - 按回车
+
+2. 目录操作命令：
+```bash
+# 查看当前目录
+cd
+
+# 进入指定目录（使用反斜杠）
+cd C:\nginx
+
+# 或者使用正斜杠
+cd C:/nginx
+
+# 进入上级目录
+cd ..
+
+# 进入指定驱动器
+E:
+
+# 切换到其他驱动器的目录
+cd /d E:\myapp\nginx
+
+# 查看当前目录下的文件和文件夹
+dir
+
+# 创建目录
+mkdir logs
+```
+
+3. 路径说明：
+   - Windows 下路径可以使用反斜杠 `\` 或正斜杠 `/`
+   - 切换驱动器时，需要先输入驱动器号（如 `E:`）
+   - 跨驱动器切换目录时，需要使用 `/d` 参数
+
+4. 常用技巧：
+   - 使用 Tab 键自动补全路径
+   - 使用上下箭头查看命令历史
+   - 使用 `cls` 清屏
+   - 按 `Ctrl + C` 中断当前命令
+
+5. 示例：
+```bash
+# 进入 E 盘
+E:
+
+# 进入 nginx 目录
+cd myapp\nginx
+
+# 或者一次性进入（跨驱动器）
+cd /d E:\myapp\nginx
+
+# 查看当前目录下的文件
+dir
+
+# 创建 logs 目录
+mkdir logs
+```
+
+注意事项：
+1. 路径中包含空格时，需要用引号括起来
+2. 建议使用管理员权限运行命令提示符
+3. 确保输入的路径正确，区分大小写
