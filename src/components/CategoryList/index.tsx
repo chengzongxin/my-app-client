@@ -1,8 +1,9 @@
 import React from 'react';
-import { Card, List, Tag, Typography } from 'antd';
+import { Card, List, Tag, Typography, Space } from 'antd';
+import { FolderOutlined } from '@ant-design/icons';
 import type { Category } from '../../types/blog';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface CategoryListProps {
   categories: Category[];
@@ -16,23 +17,58 @@ const CategoryList: React.FC<CategoryListProps> = ({
   onCategoryClick,
 }) => {
   return (
-    <Card title={<Title level={4}>文章分类</Title>}>
+    <Card
+      title={
+        <Space>
+          <FolderOutlined style={{ color: '#1890ff' }} />
+          <Title level={4} style={{ margin: 0 }}>文章分类</Title>
+        </Space>
+      }
+      bodyStyle={{ padding: '12px 24px' }}
+    >
       <List
         dataSource={categories}
+        split={false}
         renderItem={category => (
           <List.Item 
-            style={{ cursor: 'pointer' }}
+            style={{ 
+              cursor: 'pointer',
+              padding: '12px 0',
+              borderBottom: '1px solid #f0f0f0',
+              transition: 'all 0.3s',
+              backgroundColor: category.id === selectedCategory ? '#e6f7ff' : 'transparent',
+              borderRadius: '4px',
+              margin: '4px 0'
+            }}
             onClick={() => onCategoryClick?.(category.id)}
           >
-            <Tag
-              color={category.id === selectedCategory ? 'blue' : undefined}
-              style={{ margin: 0 }}
-            >
-              {category.name}
-            </Tag>
+            <Space style={{ width: '100%', padding: '0 12px' }}>
+              <Tag
+                color={category.id === selectedCategory ? '#1890ff' : undefined}
+                style={{ 
+                  margin: 0,
+                  padding: '4px 12px',
+                  borderRadius: '12px'
+                }}
+              >
+                {category.name}
+              </Tag>
+              <Text type="secondary" style={{ marginLeft: 'auto' }}>
+                {category.postCount || 0} 篇
+              </Text>
+            </Space>
           </List.Item>
         )}
       />
+      {categories.length === 0 && (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '24px 0',
+          color: '#999' 
+        }}>
+          暂无分类
+        </div>
+      )}
     </Card>
   );
 };
