@@ -190,7 +190,7 @@ chore: 其他修改
    # 停止 Nginx
    nginx -s stop
 
-   # 重新加载配置
+   # 重新��载配置
    nginx -s reload
    ```
 
@@ -369,6 +369,118 @@ add_header X-Frame-Options "SAMEORIGIN";
 add_header X-XSS-Protection "1; mode=block";
 add_header X-Content-Type-Options "nosniff";
 ```
+
+### Windows 下的 Nginx 管理
+
+1. 查看 Nginx 进程
+```bash
+# 查看占用 80 端口的进程
+netstat -ano | findstr :80
+```
+
+2. 停止 Nginx 的方法
+
+方法一：使用 Nginx 命令（推荐）
+```bash
+# 进入 Nginx 目录
+cd C:\nginx
+
+# 快速停止
+nginx -s stop
+
+# 或优雅停止（等待工作进程处理完当前请求）
+nginx -s quit
+```
+
+方法二：通过任务管理器
+1. 打开任务管理器（Ctrl + Shift + Esc）
+2. 找到 nginx.exe 进程
+3. 右键选择"结束任务"
+
+方法三：使用命令行结束进程
+```bash
+# 查找 Nginx 进程 ID
+tasklist | findstr nginx.exe
+
+# 结束进程（替换 PID 为实际的进程 ID）
+taskkill /F /PID <PID>
+
+# 或者直接结束所有 Nginx 进程
+taskkill /F /IM nginx.exe
+```
+
+3. 常见问题处理
+
+- 如果提示端口被占用：
+  1. 使用 `netstat -ano | findstr :80` 查找占用端口的进程
+  2. 使用 `taskkill /F /PID <PID>` 结束占用端口的进程
+  3. 重新启动 Nginx
+
+- 如果无法启动 Nginx：
+  1. 检查配置文件语法：`nginx -t`
+  2. 查看错误日志：`C:\nginx\logs\error.log`
+  3. 确保以管理员权限运行命令提示符
+
+## 环境变量配置
+
+### 1. 安装依赖
+
+首先安装 cross-env：
+```bash
+npm install --save-dev cross-env
+```
+
+### 2. 开发环境
+
+在项目根目录创建 `.env.development` 文件：
+```bash
+REACT_APP_API_BASE_URL=http://localhost:8080/api
+```
+
+### 3. 生产环境
+
+在项目根目录创建 `.env.production` 文件：
+```bash
+REACT_APP_API_BASE_URL=http://your-production-api-domain/api
+```
+
+### 4. 构建命令配置
+
+在 `package.json` 中添加构建命令：
+```json
+{
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:prod": "cross-env REACT_APP_API_BASE_URL=http://your-api-domain/api react-scripts build",
+    "build:dev": "cross-env REACT_APP_API_BASE_URL=http://localhost:8080/api react-scripts build"
+  }
+}
+```
+
+### 5. 使用方法
+
+1. 开发环境构建：
+```bash
+npm run build:dev
+```
+
+2. 生产环境构建：
+```bash
+npm run build:prod
+```
+
+3. 使用环境变量：
+```typescript
+// src/services/api.ts
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+```
+
+注意事项：
+1. 环境变量必须以 `REACT_APP_` 开头
+2. 修改环境变量后需要重启开发服务器
+3. 在构建时会自动注入对应环境的变量
+4. 可以使用 cross-env 确保跨平台兼容性
 
 ## 许可证
 
